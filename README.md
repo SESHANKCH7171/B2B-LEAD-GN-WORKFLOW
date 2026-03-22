@@ -4,15 +4,40 @@
 
 ---
 
+## Workflow Architecture
+
+![B2B Lead Gen Workflow — n8n Agent Overview](LEAD%20GEN%20WORKFLOW.png)
+
+---
+
 ## What This Workflow Does
 
 This n8n Agent Workflow automates the entire B2B lead generation pipeline:
 
 1. **Searches** for target companies in Aerospace & Defense using Apollo.io API
 2. **Enriches** company and contact data with real-time research via Perplexity AI & Tavily
-3. **Qualifies** leads automatically using AI scoring logic
+3. **Qualifies** leads automatically using AI scoring logic (Score >= 70)
 4. **Exports** structured lead data to Google Sheets / CRM
 5. **Sends** personalized outreach email drafts using LLM (Claude / Gemini)
+
+---
+
+## Node Breakdown
+
+| Node | Role |
+|---|---|
+| When clicking 'Execute workflow' | Manual trigger to start the pipeline |
+| ICP Definition (Agent Input) | Defines Ideal Customer Profile parameters |
+| B2B Lead Gen Agent | Core AI agent that orchestrates all tools |
+| Gemini 3.0 Flash (Agent Brain) | LLM powering the agent's reasoning |
+| Window_Buffer_Memory | Maintains context across agent steps |
+| Tavily_Company_Search | Searches for matching companies in real-time |
+| Apollo_Contact_Finder | Finds verified contact emails & titles |
+| Tavily_Deep_Research | Deep-dives into company background & news |
+| Quality Gate (Score >= 70?) | Filters out low-quality leads automatically |
+| Google Sheets — Save Lead1 | Saves high-quality leads (true path) |
+| Google Sheets — Save Lead | Saves qualified leads (false path) |
+| Low Quality — Log & Skip | Logs and skips leads below threshold |
 
 ---
 
@@ -24,7 +49,7 @@ This n8n Agent Workflow automates the entire B2B lead generation pipeline:
 | Apollo.io API | Company & contact search |
 | Perplexity AI API | Real-time company research |
 | Tavily API | Web search & enrichment |
-| Google Gemini / Claude | AI reasoning & email drafting |
+| Google Gemini 3.0 Flash | AI reasoning & agent brain |
 | Google Sheets | Lead output & tracking |
 
 ---
@@ -40,30 +65,20 @@ This n8n Agent Workflow automates the entire B2B lead generation pipeline:
 ### Step 2 — Set Up Credentials
 Add the following API credentials in n8n:
 - `Apollo.io API Key`
-- `Perplexity API Key`
 - `Tavily API Key`
-- `Google Gemini or Claude API Key`
+- `Google Gemini API Key`
 - `Google Sheets OAuth`
 
 ### Step 3 — Configure Inputs
-In the workflow, update the input node with:
+In the **ICP Definition** node, update:
 - Target **industry** (e.g., Aerospace & Defense)
 - Target **company size** (e.g., 50–500 employees)
 - Target **geography** (e.g., India, USA)
 
 ### Step 4 — Run the Workflow
 - Click **Execute Workflow**
-- Leads will be automatically populated in your connected Google Sheet
-
----
-
-## Workflow Architecture
-
-```
-Trigger --> Apollo Search --> Company Enrichment (Perplexity/Tavily)
- --> AI Lead Scoring --> Google Sheets Export
- --> Email Draft Generation
-```
+- Leads scoring >= 70 are saved to Google Sheets automatically
+- Low quality leads are logged and skipped
 
 ---
 
