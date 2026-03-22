@@ -1,0 +1,657 @@
+{
+  "name": "🤖 B2B LEAD GEN - AGENT VERSION",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e7049507-d4d4-4a24-9f11-72c83787883e",
+              "name": "icp_prompt",
+              "value": "Find B2B companies in Nashik, Maharashtra, India in the  Manufacturing, Engineering, Defense supply chain, or  Industrial Automation sector. Target companies with  10-200 employees. Find decision makers (Owner, CEO,  Director, Head of Operations, Purchase Manager).  Research their recent projects, pain points, and current  challenges. Then write a highly personalized cold email  from Owais, an AI automation consultant, offering to  automate their lead generation and outreach process  to save time and increase qualified leads.",
+              "type": "string"
+            },
+            {
+              "id": "7ab08ceb-d24d-4337-bb3b-0bcbe37075a6",
+              "name": "max_companies",
+              "value": 5,
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "10dd21c3-ab58-4fdb-8476-ded336eb4da9",
+      "name": "ICP Definition (Agent Input)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -240,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.icp_prompt }}",
+        "options": {
+          "systemMessage": "=You are an elite B2B lead generation agent specializing \nin finding companies in Nashik, Maharashtra, India.\n\nYour job:\n1. Use Tavily Company Search to find companies matching \n   the ICP in Nashik. If results are weak, retry with \n   a refined query (e.g. add \"Nashik\" + industry keyword).\n2. For each company (up to {{ $json.max_companies }}), \n   use Apollo Contact Finder to get decision maker details. \n   If Apollo returns no result, note \"contact not found\" \n   and proceed.\n3. Use Tavily Deep Research to find recent news, pain \n   points, projects, and challenges of each company.\n4. Write a highly personalized cold email from Owais, \n   an AI automation consultant based in Nashik, offering \n   to automate their lead generation and outreach.\n5. Return structured JSON:\n{\n  \"company_name\": \"\",\n  \"company_website\": \"\",\n  \"city\": \"Nashik\",\n  \"contact_name\": \"\",\n  \"contact_title\": \"\",\n  \"contact_email\": \"\",\n  \"company_research\": \"\",\n  \"personalized_email\": \"\",\n  \"confidence_score\": 0-100\n}\nIMPORTANT: Return ONLY raw JSON. Do NOT wrap in markdown code blocks or backticks.\nYou MUST use the Tavily_Company_Search tool first to find \ncompanies. You MUST use Apollo_Contact_Finder tool to find \ncontacts. You MUST use Tavily_Deep_Research tool for company \nresearch. Never answer from memory — always use the tools provided.\n\nIMPORTANT: Return ONLY raw JSON...\nYou MUST use Tavily_Company_Search tool first to find companies.\nYou MUST use Apollo_Contact_Finder tool to find contacts.\nYou MUST use Tavily_Deep_Research tool for company research.\nNever answer from memory — always use the tools provided.\n\n",
+          "maxIterations": 15,
+          "returnIntermediateSteps": false
+        }
+      },
+      "id": "e67de516-739d-4660-adb6-122468a6c426",
+      "name": "B2B Lead Gen Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        48,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1d0b30d3-e738-48ef-8cee-a64e05384131",
+              "leftValue": "={{ JSON.parse($json.output)[0].confidence_score }}\n\n\n",
+              "rightValue": 70,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            },
+            {
+              "id": "1ee04e85-a3be-4de1-9d77-a013bf867862",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "bc04ea52-4bae-4d69-9165-c48378fdcc02",
+      "name": "Quality Gate (Score >= 70?)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b974f188-da46-4b8c-b9c4-646bff760b96",
+              "name": "status",
+              "value": "SKIPPED - Low confidence score",
+              "type": "string"
+            },
+            {
+              "id": "8260ca3e-0040-4b5f-a2a5-38029d26bf6b",
+              "name": "agent_output",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f35fc1f0-47f3-46a8-a8a0-5832159183be",
+      "name": "Low Quality - Log & Skip",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        688,
+        864
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1wrxFOnBJAM2dUXbJAuIONIVy4TX78hQOqDxef_OUksE",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "MAR_3",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wrxFOnBJAM2dUXbJAuIONIVy4TX78hQOqDxef_OUksE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "company_name": "{{ $json.output.company_name }}",
+            "company_website": "{{ $json.output.company_website }}",
+            "contact_name": "{{ $json.output.contact_name }}",
+            "contact_title": "{{ $json.output.contact_title }}",
+            "contact_email": "{{ $json.output.contact_email }}",
+            "company_research": "{{ $json.output.company_research }}",
+            "personalized_email": "{{ $json.output.personalized_email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company_website",
+              "displayName": "company_website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "contact_name",
+              "displayName": "contact_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "contact_title",
+              "displayName": "contact_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "contact_email",
+              "displayName": "contact_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company_research",
+              "displayName": "company_research",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "personalized_email",
+              "displayName": "personalized_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "78abd341-8f43-4bd6-ad30-96a2ffd325aa",
+      "name": "Google Sheets - Save Lead1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        704,
+        464
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "25JAtdGuLwU5Fkm8",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-flash-latest",
+        "options": {
+          "maxOutputTokens": 2048,
+          "temperature": 0
+        }
+      },
+      "id": "20893711-c224-47c2-b18b-9c39466d006b",
+      "name": "Gemini 3.0 Flash (Agent Brain)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        656
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "zqhpqrRHqBj43l1R",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"api_key\":\"YOUR_TAVILY_API_KEY\",\"query\":\"{query}\",\"search_depth\":\"advanced\",\"max_results\":10,\"include_answer\":true,\"include_raw_content\":false}\n",
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "query",
+              "description": "Research query like 'CompanyName recent news challenges 2025'"
+            }
+          ]
+        }
+      },
+      "id": "2cf09371-c9de-4c26-87b8-b4660e19b2eb",
+      "name": "Tavily_Deep_Research",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.apollo.io/v1/mixed_people/search",
+        "sendQuery": true,
+        "parametersQuery": {
+          "values": [
+            {
+              "name": "person_titles"
+            },
+            {
+              "name": "organization_domains",
+              "valueProvider": "fieldValue",
+              "value": "{domain}"
+            },
+            {
+              "name": "per_page",
+              "valueProvider": "fieldValue",
+              "value": "1"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "x-api-key",
+              "valueProvider": "fieldValue",
+              "value": "YOUR_APOLLO_API_KEY"
+            }
+          ]
+        },
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "domain",
+              "description": "The company domain name e.g. company.com"
+            }
+          ]
+        }
+      },
+      "id": "b70230a2-3d29-4476-8611-22cb107fee79",
+      "name": "Apollo_Contact_Finder",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendHeaders": true,
+        "parametersHeaders": {
+          "values": [
+            {
+              "name": "Authorization",
+              "valueProvider": "fieldValue",
+              "value": "{YOUR_TAVILY_API_KEY}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"api_key\": \"YOUR_TAVILY_API_KEY\",\n  \"query\": \"{query}\",\n  \"search_depth\": \"advanced\",\n  \"max_results\": 5,\n  \"include_answer\": true\n}",
+        "placeholderDefinitions": {
+          "values": [
+            {
+              "name": "query",
+              "description": "The company search query based on ICP criteria"
+            }
+          ]
+        }
+      },
+      "id": "c3c260c7-2882-4ba3-a6d4-d2d3de5faec8",
+      "name": "Tavily_Company_Search",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [
+        96,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "b2b_lead_gen_session",
+        "contextWindowLength": 10
+      },
+      "id": "43b41522-812a-4b0d-8b30-1ef63c0d5910",
+      "name": "Window_Buffer_Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        16,
+        656
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        448
+      ],
+      "id": "4b27f8ff-83f1-4bc2-9445-9fa0bd23071c",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1wrxFOnBJAM2dUXbJAuIONIVy4TX78hQOqDxef_OUksE",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1104705959,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1wrxFOnBJAM2dUXbJAuIONIVy4TX78hQOqDxef_OUksE/edit#gid=1104705959"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "company_name": "{{ $json.output.company_name }}",
+            "company_website": "{{ $json.output.company_website }}",
+            "contact_name": "{{ $json.output.contact_name }}",
+            "contact_title": "{{ $json.output.contact_title }}",
+            "contact_email": "{{ $json.output.contact_email }}",
+            "company_research": "{{ $json.output.company_research }}",
+            "personalized_email": "{{ $json.output.personalized_email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "company_name",
+              "displayName": "company_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company_website",
+              "displayName": "company_website",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "contact_name",
+              "displayName": "contact_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "contact_title",
+              "displayName": "contact_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "contact_email",
+              "displayName": "contact_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company_research",
+              "displayName": "company_research",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "personalized_email",
+              "displayName": "personalized_email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "2a1dacd7-5116-43ce-802f-4848d487c623",
+      "name": "Google Sheets - Save Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        704,
+        672
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "25JAtdGuLwU5Fkm8",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "ICP Definition (Agent Input)": {
+      "main": [
+        [
+          {
+            "node": "B2B Lead Gen Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality Gate (Score >= 70?)": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Save Lead1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Low Quality - Log & Skip",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Sheets - Save Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "B2B Lead Gen Agent": {
+      "main": [
+        [
+          {
+            "node": "Quality Gate (Score >= 70?)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini 3.0 Flash (Agent Brain)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "B2B Lead Gen Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily_Deep_Research": {
+      "ai_tool": [
+        [
+          {
+            "node": "B2B Lead Gen Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apollo_Contact_Finder": {
+      "ai_tool": [
+        [
+          {
+            "node": "B2B Lead Gen Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily_Company_Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "B2B Lead Gen Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window_Buffer_Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "B2B Lead Gen Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "ICP Definition (Agent Input)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b1419798-158b-4765-b161-92ce43c0ca3e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "72fab4373f0fa79333d95db41a1cb15b3e9c8cea615665447190eb737e08225e"
+  },
+  "id": "Sb0dDPjkt5sicNCT",
+  "tags": []
+}
